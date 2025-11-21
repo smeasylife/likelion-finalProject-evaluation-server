@@ -119,14 +119,14 @@ public class EvaluationService {
     }
 
     private void validateScores(EvaluationRequest request) {
-        if (request.getDesignTotalScore() <= 5 || request.getDesignTotalScore() >= 25) {
+        if (request.getDesignTotalScore() < 5 || request.getDesignTotalScore() > 25) {
             throw new IllegalArgumentException("디자인 점수는 5-25점 사이여야 합니다.");
         }
-        if (request.getDevelopmentTotalScore() <= 7 || request.getDevelopmentTotalScore() >= 35) {
+        if (request.getDevelopmentTotalScore() < 7 || request.getDevelopmentTotalScore() > 35) {
             throw new IllegalArgumentException("개발 점수는 7-35점 사이여야 합니다.");
         }
-        if (request.getCommonTotalScore() <= 4 || request.getCommonTotalScore() >= 20) {
-            throw new IllegalArgumentException("공통 점수는 3-15점 사이여야 합니다.");
+        if (request.getCommonTotalScore() < 3 || request.getCommonTotalScore() > 20) {
+            throw new IllegalArgumentException("공통 점수는 4-20점 사이여야 합니다.");
         }
     }
 }
