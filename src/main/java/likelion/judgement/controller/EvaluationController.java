@@ -20,37 +20,15 @@ public class EvaluationController {
     private final EvaluationService evaluationService;
 
     @PostMapping("/evaluations")
-    public ResponseEntity<?> submitEvaluation(@RequestBody EvaluationRequest request) {
-        try {
-            Evaluation evaluation = evaluationService.submitEvaluation(request);
-            return ResponseEntity.ok(evaluation);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("평가 제출 중 오류가 발생했습니다.");
-        }
+    public ResponseEntity<Evaluation> submitEvaluation(@RequestBody EvaluationRequest request) {
+        Evaluation evaluation = evaluationService.submitEvaluation(request);
+        return ResponseEntity.ok(evaluation);
     }
 
     @GetMapping("/results")
     public ResponseEntity<List<TeamResult>> getAllResults() {
-        try {
-            List<TeamResult> results = evaluationService.getAllTeamResults();
-            return ResponseEntity.ok(results);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        List<TeamResult> results = evaluationService.getAllTeamResults();
+        return ResponseEntity.ok(results);
     }
 
-    @GetMapping("/results/{teamName}")
-    public ResponseEntity<?> getTeamResult(@PathVariable String teamName) {
-        try {
-            TeamResult result = evaluationService.getTeamResult(teamName);
-            return ResponseEntity.ok(result);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-}
+  }
