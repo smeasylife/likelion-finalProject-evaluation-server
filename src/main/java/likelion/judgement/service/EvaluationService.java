@@ -1,9 +1,11 @@
 package likelion.judgement.service;
 
 import likelion.judgement.dto.EvaluationRequest;
+import likelion.judgement.dto.EvaluationResponse;
 import likelion.judgement.dto.TeamResult;
 import likelion.judgement.entity.Evaluation;
 import likelion.judgement.entity.Team;
+import likelion.judgement.exception.DuplicateEvaluationException;
 import likelion.judgement.repository.EvaluationRepository;
 import likelion.judgement.repository.TeamRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,13 +24,13 @@ public class EvaluationService {
     private final EvaluationRepository evaluationRepository;
 
     @Transactional
-    public Evaluation submitEvaluation(EvaluationRequest request) {
+    public EvaluationResponse submitEvaluation(EvaluationRequest request) {
         Team team = teamRepository.findByName(request.getTeamName())
                 .orElseThrow(() -> new IllegalArgumentException("팀을 찾을 수 없습니다: " + request.getTeamName()));
 
         if (evaluationRepository.existsByTeamIdAndEvaluatorRoleAndEvaluatorName(
                 team.getId(), request.getEvaluatorRole(), request.getEvaluatorName())) {
-            throw new IllegalArgumentException("이미 평가한 팀입니다.");
+            throw new DuplicateEvaluationException(request.getEvaluatorName(), request.getEvaluatorRole(), request.getTeamName());
         }
 
         validateScores(request);
@@ -42,7 +44,17 @@ public class EvaluationService {
                 .commonTotalScore(request.getCommonTotalScore())
                 .build();
 
-        return evaluationRepository.save(evaluation);
+        Evaluation savedEvaluation = evaluationRepository.save(evaluation);
+
+        return EvaluationResponse.builder()
+                .id(savedEvaluation.getId())
+                .teamName(savedEvaluation.getTeam().getName())
+                .evaluatorRole(savedEvaluation.getEvaluatorRole())
+                .evaluatorName(savedEvaluation.getEvaluatorName())
+                .designTotalScore(savedEvaluation.getDesignTotalScore())
+                .developmentTotalScore(savedEvaluation.getDevelopmentTotalScore())
+                .commonTotalScore(savedEvaluation.getCommonTotalScore())
+                .build();
     }
 
     public List<TeamResult> getAllTeamResults() {
@@ -50,7 +62,6 @@ public class EvaluationService {
 
         return teams.stream()
                 .map(this::calculateTeamResult)
-                .sorted((a, b) -> Double.compare(b.getAverageTotalScore(), a.getAverageTotalScore()))
                 .collect(Collectors.toList());
     }
 
@@ -68,47 +79,53 @@ public class EvaluationService {
             return TeamResult.builder()
                     .teamId(team.getId())
                     .teamName(team.getName())
-                    .designTotalScore(0)
-                    .developmentTotalScore(0)
-                    .commonTotalScore(0)
-                    .totalScore(0)
-                    .evaluationCount(0)
-                    .averageDesignScore(0.0)
-                    .averageDevelopmentScore(0.0)
-                    .averageCommonScore(0.0)
-                    .averageTotalScore(0.0)
+                    .judgeTotalScore(0)
+                    .judgeEvaluationCount(0)
+                    .menteeTotalScore(0)
+                    .menteeEvaluationCount(0)
                     .build();
         }
 
-        int designSum = evaluations.stream().mapToInt(Evaluation::getDesignTotalScore).sum();
-        int developmentSum = evaluations.stream().mapToInt(Evaluation::getDevelopmentTotalScore).sum();
-        int commonSum = evaluations.stream().mapToInt(Evaluation::getCommonTotalScore).sum();
-        int totalSum = designSum + developmentSum + commonSum;
-        int count = evaluations.size();
+        // 심사위원 평가 필터링
+        List<Evaluation> judgeEvaluations = evaluations.stream()
+                .filter(e -> "심사위원".equals(e.getEvaluatorRole()))
+                .toList();
+
+        // 아기사자 평가 필터링
+        List<Evaluation> menteeEvaluations = evaluations.stream()
+                .filter(e -> "아기사자".equals(e.getEvaluatorRole()))
+                .toList();
+
+        // 심사위원 점수 계산
+        int judgeTotalScore = judgeEvaluations.stream()
+                .mapToInt(e -> e.getDesignTotalScore() + e.getDevelopmentTotalScore() + e.getCommonTotalScore())
+                .sum();
+        int judgeCount = judgeEvaluations.size();
+
+        // 아기사자 점수 계산
+        int menteeTotalScore = menteeEvaluations.stream()
+                .mapToInt(e -> e.getDesignTotalScore() + e.getDevelopmentTotalScore() + e.getCommonTotalScore())
+                .sum();
+        int menteeCount = menteeEvaluations.size();
 
         return TeamResult.builder()
                 .teamId(team.getId())
                 .teamName(team.getName())
-                .designTotalScore(designSum)
-                .developmentTotalScore(developmentSum)
-                .commonTotalScore(commonSum)
-                .totalScore(totalSum)
-                .evaluationCount(count)
-                .averageDesignScore((double) designSum / count)
-                .averageDevelopmentScore((double) developmentSum / count)
-                .averageCommonScore((double) commonSum / count)
-                .averageTotalScore((double) totalSum / count)
+                .judgeTotalScore(judgeTotalScore)
+                .judgeEvaluationCount(judgeCount)
+                .menteeTotalScore(menteeTotalScore)
+                .menteeEvaluationCount(menteeCount)
                 .build();
     }
 
     private void validateScores(EvaluationRequest request) {
-        if (request.getDesignTotalScore() < 5 || request.getDesignTotalScore() > 25) {
+        if (request.getDesignTotalScore() <= 5 || request.getDesignTotalScore() >= 25) {
             throw new IllegalArgumentException("디자인 점수는 5-25점 사이여야 합니다.");
         }
-        if (request.getDevelopmentTotalScore() < 7 || request.getDevelopmentTotalScore() > 35) {
+        if (request.getDevelopmentTotalScore() <= 7 || request.getDevelopmentTotalScore() >= 35) {
             throw new IllegalArgumentException("개발 점수는 7-35점 사이여야 합니다.");
         }
-        if (request.getCommonTotalScore() < 3 || request.getCommonTotalScore() > 15) {
+        if (request.getCommonTotalScore() <= 4 || request.getCommonTotalScore() >= 20) {
             throw new IllegalArgumentException("공통 점수는 3-15점 사이여야 합니다.");
         }
     }

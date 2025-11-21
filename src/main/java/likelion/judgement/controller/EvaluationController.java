@@ -1,8 +1,8 @@
 package likelion.judgement.controller;
 
 import likelion.judgement.dto.EvaluationRequest;
+import likelion.judgement.dto.EvaluationResponse;
 import likelion.judgement.dto.TeamResult;
-import likelion.judgement.entity.Evaluation;
 import likelion.judgement.service.EvaluationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -14,15 +14,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class EvaluationController {
 
     private final EvaluationService evaluationService;
 
     @PostMapping("/evaluations")
-    public ResponseEntity<Evaluation> submitEvaluation(@RequestBody EvaluationRequest request) {
-        Evaluation evaluation = evaluationService.submitEvaluation(request);
-        return ResponseEntity.ok(evaluation);
+    public ResponseEntity<EvaluationResponse> submitEvaluation(@RequestBody EvaluationRequest request) {
+        EvaluationResponse response = evaluationService.submitEvaluation(request);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/results")

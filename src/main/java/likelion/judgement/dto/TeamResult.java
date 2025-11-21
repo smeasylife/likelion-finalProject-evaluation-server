@@ -8,13 +8,13 @@ import lombok.Getter;
 public class TeamResult {
     private Long teamId;
     private String teamName;
-    private Integer designTotalScore;
-    private Integer developmentTotalScore;
-    private Integer commonTotalScore;
-    private Integer totalScore;
-    private Integer evaluationCount;
-    private Double averageDesignScore;
-    private Double averageDevelopmentScore;
-    private Double averageCommonScore;
-    private Double averageTotalScore;
+
+    // 심사위원 총 점수
+    private Integer judgeTotalScore;
+    private Integer judgeEvaluationCount;
+
+    // 아기사자 총 점수
+    private Integer menteeTotalScore;
+    private Integer menteeEvaluationCount;
+
 }
