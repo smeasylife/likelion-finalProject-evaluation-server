@@ -25,4 +25,6 @@ public interface EvaluationRepository extends JpaRepository<Evaluation, Long> {
 
     @Query("SELECT e FROM Evaluation e WHERE e.team.id = :teamId")
     List<Evaluation> findAllByTeamIdWithTeam(@Param("teamId") Long teamId);
+
+    void deleteAll();
 }

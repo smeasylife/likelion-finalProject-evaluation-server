@@ -30,4 +30,10 @@ public class EvaluationController {
         return ResponseEntity.ok(results);
     }
 
+    @DeleteMapping("/evaluations")
+    public ResponseEntity<Void> deleteAllEvaluations() {
+        evaluationService.deleteAllEvaluations();
+        return ResponseEntity.noContent().build();
+    }
+
   }

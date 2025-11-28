@@ -67,3 +67,4 @@ truststore
 # Log files
 *.log
 logs/
+src/main/resources/application.properties

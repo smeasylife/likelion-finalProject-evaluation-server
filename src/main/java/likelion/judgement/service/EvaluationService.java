@@ -129,4 +129,9 @@ public class EvaluationService {
             throw new IllegalArgumentException("공통 점수는 4-20점 사이여야 합니다.");
         }
     }
+
+    @Transactional
+    public void deleteAllEvaluations() {
+        evaluationRepository.deleteAll();
+    }
 }
