@@ -10,8 +10,10 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
-                .allowedOrigins("https://likelion-final-project-evaluation-c.vercel.app") // 프론트엔드 경로는 나중에 추가
-                .allowedOrigins("http://localhost:5173")
+                .allowedOrigins(
+                    "https://likelion-final-project-evaluation-c.vercel.app",
+                    "http://localhost:5173"
+                )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true)
